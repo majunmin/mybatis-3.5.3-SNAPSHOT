@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+  <properties resource="org/apache/ibatis/learn/jdbc.properties"/>
+
+  <typeAliases>
+    <package name="org.apache.ibatis.learn.model"/>
+    <!--<typeAlias alias="Article" type="org.apache.ibatis.learn.model.ArticleDO"/>-->
+    <!--<typeAlias alias="AuthorDO" type="org.apache.ibatis.learn.model.AuthorDO"/>-->
+  </typeAliases>
+
+  <typeHandlers>
+    <typeHandler handler="org.apache.ibatis.learn.learn2.CustomTypeHandler" javaType="org.apache.ibatis.learn.model.ArticleTypeEnum"/>
+    <typeHandler handler="org.apache.ibatis.learn.learn2.CustomTypeHandler" javaType="org.apache.ibatis.learn.model.SexEnum"/>
+  </typeHandlers>
+
+  <plugins>
+    <plugin interceptor="org.apache.ibatis.learn.learn2.AlwaysMapPlugin">
+      <property name="key" value="value"></property>
+    </plugin>
+  </plugins>
+
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+      </dataSource>
+    </environment>
+  </environments>
+
+  <mappers>
+    <mapper resource="org/apache/ibatis/learn/learn2/AuthorMapper.xml"/>
+    <mapper resource="org/apache/ibatis/learn/learn2/ArticleMapper.xml"/>
+  </mappers>
+</configuration>

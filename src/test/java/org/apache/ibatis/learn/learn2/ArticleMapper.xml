@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.ibatis.learn.learn2.ArticleDao">
+
+  <resultMap id="authorResult" type="AuthorDO">
+    <id property="id" column="author_id"/>
+    <result property="name" column="name"/>
+    <result property="age" column="age"/>
+    <result property="sex" column="sex" typeHandler="org.apache.ibatis.learn.learn2.CustomTypeHandler"/>
+    <result property="email" column="email"/>
+  </resultMap>
+
+  <resultMap id="articleResult" type="Article">
+    <id property="id" column="id" />
+    <result property="title" column="title"/>
+    <result property="type" column="type" typeHandler="org.apache.ibatis.learn.learn2.CustomTypeHandler"/>
+    <result property="content" column="content"/>
+    <result property="createTime" column="create_time"/>
+    <association property="author" javaType="AuthorDO" resultMap="authorResult"/>
+  </resultMap>
+
+  <select id="findOne" resultMap="articleResult">
+    SELECT
+    ar.id, ar.author_id, ar.title, ar.type, ar.content, ar.create_time,
+    au.name, au.age, au.sex, au.email
+    FROM
+    article_do ar, author_do au
+    WHERE
+    ar.author_id = au.id AND ar.id = #{id}
+  </select>
+</mapper>
