@@ -18,6 +18,10 @@ package org.apache.ibatis.parsing;
 /**
  *  mybatis通用标记解析器，对xml中属性中的占位符进行解析
  *
+ *  如上，GenericTokenParser 是一个通用的标记解析器，用于解析形如 ${xxx}，#{xxx} 等标记。
+ *  GenericTokenParser 负责将标记中的内容抽取出来，并将标记内容交给相应的 TokenHandler 去处理。
+ *  BindingTokenParser 负责解析标记内容，并将解析结果返回给 GenericTokenParser，用于替换 ${xxx} 标记。
+ *
  * @author Clinton Begin
  */
 public class GenericTokenParser {
@@ -26,7 +30,7 @@ public class GenericTokenParser {
   private final String openToken;
   // 结束标记符
   private final String closeToken;
-  // 标记处理接口, 具体处理方法取决于它的实现方法
+  // TokenHandler 接口的实现会按一定的逻辑解析占位符 ${xxx}
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {
@@ -36,8 +40,7 @@ public class GenericTokenParser {
   }
 
   /**
-   *
-   * 将占位符解析为文本并返回
+   * 将占位符解析为文本并返回  (这段代码 也不太难)
    * @param text
    * @return
    */
@@ -85,6 +88,7 @@ public class GenericTokenParser {
           builder.append(src, start, src.length - start);
           offset = src.length;
         } else {
+          // 将占位符 字面值交给 TokenHandler 处理，并将解析结果拼接到 StringBuilder 中
           builder.append(handler.handleToken(expression.toString()));
           offset = end + closeToken.length();
         }

@@ -27,14 +27,25 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * 对 org.w3c.dom.Node 进行了封装
+ *
+ * XNode 中提供了多种 get*() 用来获取所需的节点信息，这些信息主要来自
+ *   body  attribute  node
+ * XNode#eval*() 主要依赖其 内部的 xpathParser#eval*()来做的
+ *
  * @author Clinton Begin
  */
 public class XNode {
 
+  //org.w3c.dom.Node
   private final Node node;
+  // Node 节点名称
   private final String name;
+  // 节点内容
   private final String body;
+  // 节点属性集合
   private final Properties attributes;
+  // mybatis-config 中配置的 <properties>节点下定义的键值对
   private final Properties variables;
   private final XPathParser xpathParser;
 
@@ -362,6 +373,7 @@ public class XNode {
 
   private Properties parseAttributes(Node n) {
     Properties attributes = new Properties();
+    // 获取属性集合
     NamedNodeMap attributeNodes = n.getAttributes();
     if (attributeNodes != null) {
       for (int i = 0; i < attributeNodes.getLength(); i++) {
@@ -375,7 +387,7 @@ public class XNode {
 
   private String parseBody(Node node) {
     String data = getBodyData(node);
-    if (data == null) {
+    if (data == null) { // 没有文本节点
       NodeList children = node.getChildNodes();
       for (int i = 0; i < children.getLength(); i++) {
         Node child = children.item(i);
@@ -389,6 +401,7 @@ public class XNode {
   }
 
   private String getBodyData(Node child) {
+    // 仅处理文本节点 Node.TEXT_NODE
     if (child.getNodeType() == Node.CDATA_SECTION_NODE
         || child.getNodeType() == Node.TEXT_NODE) {
       String data = ((CharacterData) child).getData();

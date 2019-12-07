@@ -60,9 +60,15 @@ public class PropertyParser {
     return parser.parse(string);
   }
 
+  /**
+   *
+   */
   private static class VariableTokenHandler implements TokenHandler {
+    // mybatis 配置文件中 <properties> 中的属性， 用来替换占位符
     private final Properties variables;
+    // 检测是否支持占位符中使用 默认值
     private final boolean enableDefaultValue;
+    // 默认 占位符与默认值之间的分隔符 ${name:xiaoding}
     private final String defaultValueSeparator;
 
     private VariableTokenHandler(Properties variables) {
