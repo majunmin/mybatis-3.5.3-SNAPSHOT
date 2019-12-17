@@ -124,16 +124,27 @@ public class ParamNameResolver {
     if (args == null || paramCount == 0) {
       return null;
     } else if (!hasParamAnnotation && paramCount == 1) {
+      /**
+       * 如果方法参数列表无 @Param 注解，且仅有一个非特别参数，则返回该参数的值。
+       * 比如如下方法：
+       *     List findList(RowBounds rb, String name)
+       * names 如下：
+       *     names = {1 : "0"}
+       * 此种情况下，返回 args[names.firstKey()]，即 args[1] -> name
+       */
       return args[names.firstKey()];
     } else {
       final Map<String, Object> param = new ParamMap<>();
       int i = 0;
+      // 添加 <参数名, 参数值> 键值对到 param 中
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
         param.put(entry.getValue(), args[entry.getKey()]);
         // add generic param names (param1, param2, ...)
+        // genericParamName = param + index。比如 param1, param2, ... paramN
         final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
         // ensure not to overwrite parameter named with @Param
         if (!names.containsValue(genericParamName)) {
+          // 添加 <param*, value> 到 param 中
           param.put(genericParamName, args[entry.getKey()]);
         }
         i++;

@@ -35,8 +35,11 @@ public class TypeParameterResolver {
    *         they will be resolved to the actual runtime {@link Type}s.
    */
   public static Type resolveFieldType(Field field, Type srcType) {
+    //获取字段的声明类型
     Type fieldType = field.getGenericType();
+    //  获取字段定义所在类的 Class 对象
     Class<?> declaringClass = field.getDeclaringClass();
+    // resolve
     return resolveType(fieldType, srcType, declaringClass);
   }
 
@@ -64,6 +67,13 @@ public class TypeParameterResolver {
     return result;
   }
 
+  /**
+   * resolveFieldType resolveReturnType resolveParamTypes 都会调用该方法
+   * @param type     字段/返回值/参数类型
+   * @param srcType  字段/返回值/参数 起始位置
+   * @param declaringClass  字段/返回值/参数 所在类的Class对象
+   * @return
+   */
   private static Type resolveType(Type type, Type srcType, Class<?> declaringClass) {
     if (type instanceof TypeVariable) {
       return resolveTypeVar((TypeVariable<?>) type, srcType, declaringClass);
@@ -71,9 +81,11 @@ public class TypeParameterResolver {
       return resolveParameterizedType((ParameterizedType) type, srcType, declaringClass);
     } else if (type instanceof GenericArrayType) {
       return resolveGenericArrayType((GenericArrayType) type, srcType, declaringClass);
-    } else {
+    } else { // 如果是Class对象 直接返回
       return type;
     }
+
+    // 字段 返回值 参数 都不可能定义成 WildcardType,但可以嵌套在其他类型中
   }
 
   private static Type resolveGenericArrayType(GenericArrayType genericArrayType, Type srcType, Class<?> declaringClass) {
@@ -101,6 +113,7 @@ public class TypeParameterResolver {
       if (typeArgs[i] instanceof TypeVariable) {
         args[i] = resolveTypeVar((TypeVariable<?>) typeArgs[i], srcType, declaringClass);
       } else if (typeArgs[i] instanceof ParameterizedType) {
+        // 如果嵌套了 ParameterizedType， 则递归解析
         args[i] = resolveParameterizedType((ParameterizedType) typeArgs[i], srcType, declaringClass);
       } else if (typeArgs[i] instanceof WildcardType) {
         args[i] = resolveWildcardType((WildcardType) typeArgs[i], srcType, declaringClass);
@@ -108,6 +121,7 @@ public class TypeParameterResolver {
         args[i] = typeArgs[i];
       }
     }
+    // 将解析结果封装为 TypeParameterResolver#ParameterizedTypeImpl 并返回
     return new ParameterizedTypeImpl(rawType, null, args);
   }
 

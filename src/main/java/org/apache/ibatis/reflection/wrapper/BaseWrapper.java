@@ -38,14 +38,15 @@ public abstract class BaseWrapper implements ObjectWrapper {
     if ("".equals(prop.getName())) {
       return object;
     } else {
+      // 解析属性表达式并获取指定属性
       return metaObject.getValue(prop.getName());
     }
   }
 
   protected Object getCollectionValue(PropertyTokenizer prop, Object collection) {
-    if (collection instanceof Map) {
+    if (collection instanceof Map) { // 如果是Map类型 index = key
       return ((Map) collection).get(prop.getIndex());
-    } else {
+    } else { //如果是 集合类型 index = 下标
       int i = Integer.parseInt(prop.getIndex());
       if (collection instanceof List) {
         return ((List) collection).get(i);

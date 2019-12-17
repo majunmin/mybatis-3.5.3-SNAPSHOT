@@ -21,6 +21,8 @@ import java.util.Properties;
 /**
  * MyBatis uses an ObjectFactory to create all needed new Objects.
  *
+ * 该类提供了许多 create()的重载方法，用于创建指定类型的对象
+ *
  * @author Clinton Begin
  */
 public interface ObjectFactory {

@@ -21,6 +21,8 @@ import org.apache.ibatis.reflection.ReflectionException;
 
 /**
  * @author Clinton Begin
+ *
+ * 提供了多种静态方法 完成方法名到属性名的转换，以及多种检测操作
  */
 public final class PropertyNamer {
 
@@ -28,6 +30,11 @@ public final class PropertyNamer {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   * 将方法名转换为属性名
+   * @param name  方法名
+   * @return
+   */
   public static String methodToProperty(String name) {
     if (name.startsWith("is")) {
       name = name.substring(2);

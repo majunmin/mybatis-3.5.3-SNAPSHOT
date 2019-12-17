@@ -48,6 +48,7 @@ public final class PropertyCopier {
           // Nothing useful to do, will only fail on final fields, which will be ignored.
         }
       }
+      // 继续拷贝父类中的字段
       parent = parent.getSuperclass();
     }
   }

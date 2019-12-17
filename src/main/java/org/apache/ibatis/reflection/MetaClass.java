@@ -28,6 +28,7 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
  * 用来解析目标类的一些元信息，比如类的成员变量，getter/setter 方法等。
+ * 通过 PropertyTokenizer 和 Reflector 组合使用， 解析复杂属性表达式，并实现了获取指定属性描述信息的功能
  *
  * @author Clinton Begin
  */
@@ -38,7 +39,7 @@ public class MetaClass {
 
   private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
     /**
-     * reflectorFactory Reflector 的工厂类,兼有缓存 Reflector 对象的功能
+     * reflectorFactory Reflector 的工厂类, 有 创建&缓存 Reflector 的功能
      * reflector        反射器， 用于解析和存储目标类中的元信息
      */
     this.reflectorFactory = reflectorFactory;
@@ -46,7 +47,7 @@ public class MetaClass {
   }
 
   /**
-   *
+   * 通过静态方法创建 MetaClass
    * @param type
    * @param
    * @return
@@ -56,10 +57,17 @@ public class MetaClass {
   }
 
   public MetaClass metaClassForProperty(String name) {
+    // 查找属性对应的 Class, 为该属性创建对应的 MetaClass
     Class<?> propType = reflector.getGetterType(name);
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 比较重要
+   * 通过 调用 buildProperty(里面通过 PropertyTokenizer 进行复杂表达式的解析)
+   * @param name
+   * @return
+   */
   public String findProperty(String name) {
     StringBuilder prop = buildProperty(name, new StringBuilder());
     return prop.length() > 0 ? prop.toString() : null;
@@ -101,15 +109,20 @@ public class MetaClass {
   }
 
   private MetaClass metaClassForProperty(PropertyTokenizer prop) {
+    // 获取表达式所属的属性类型
     Class<?> propType = getGetterType(prop);
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
   private Class<?> getGetterType(PropertyTokenizer prop) {
     Class<?> type = reflector.getGetterType(prop.getName());
+    // 判断该表达式 是否含有 '[]'  && 是 Collection 的子类
     if (prop.getIndex() != null && Collection.class.isAssignableFrom(type)) {
+      // 通过 TypeParameterResolver 工具类 解析属性的类型
       Type returnType = getGenericGetterType(prop.getName());
+      // 针对 泛型集合类型的参数的处理
       if (returnType instanceof ParameterizedType) {
+        // 获取实际的类型参数
         Type[] actualTypeArguments = ((ParameterizedType) returnType).getActualTypeArguments();
         if (actualTypeArguments != null && actualTypeArguments.length == 1) {
           returnType = actualTypeArguments[0];
@@ -126,6 +139,7 @@ public class MetaClass {
 
   private Type getGenericGetterType(String propertyName) {
     try {
+      // Reflector.getMethods 集合中记录了 Invoke 实现类的类型，决定解析 getter()返回值类型||字段类型
       Invoker invoker = reflector.getGetInvoker(propertyName);
       if (invoker instanceof MethodInvoker) {
         Field _method = MethodInvoker.class.getDeclaredField("method");
@@ -167,6 +181,11 @@ public class MetaClass {
     }
   }
 
+  /**
+   * 调用 Reflector#hasGetter, 查找其 getMethods
+   * @param name
+   * @return
+   */
   public boolean hasGetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -190,16 +209,20 @@ public class MetaClass {
   }
 
   private StringBuilder buildProperty(String name, StringBuilder builder) {
+    // 解析属性表达式
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //查找 prop.getName() 对应的属性
       String propertyName = reflector.findPropertyName(prop.getName());
       if (propertyName != null) {
+        // 追加属性名
         builder.append(propertyName);
         builder.append(".");
         MetaClass metaProp = metaClassForProperty(propertyName);
         metaProp.buildProperty(prop.getChildren(), builder);
       }
     } else {
+      // 递归出口
       String propertyName = reflector.findPropertyName(name);
       if (propertyName != null) {
         builder.append(propertyName);

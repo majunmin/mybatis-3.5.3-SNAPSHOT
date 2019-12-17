@@ -19,15 +19,22 @@ import java.util.Iterator;
 
 /**
  * @author Clinton Begin
+ *
+ * 用于解析 类似 "orders[0].items[1].name" 的字符串
+ * 构造器用于传入一个完整的带解析字符串，  并通过 next() 解析 children
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
+  // 当前表达式名称
   private String name;
+  // 当前表达式索引名
   private final String indexedName;
+  // 索引下标
   private String index;
+  // 子表达式
   private final String children;
 
   public PropertyTokenizer(String fullname) {
-    int delim = fullname.indexOf('.');
+    int delim = fullname.indexOf('.'); // 查找 '.' 的位置
     if (delim > -1) {
       name = fullname.substring(0, delim);
       children = fullname.substring(delim + 1);
