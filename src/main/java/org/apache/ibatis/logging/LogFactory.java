@@ -30,6 +30,21 @@ public final class LogFactory {
 
   private static Constructor<? extends Log> logConstructor;
 
+  /**
+   * 按序加载并实例化第三方日志组件适配器
+   * 下面会针对每种 日志组件调用 tryImplementation() 尝试加载
+   * logConstructor = 第一个加载成功的 Log
+   *
+   * useSlf4jLogging
+   * useCommonsLogging
+   * useLog4J2Logging
+   * useLog4JLogging
+   * useJdkLogging
+   * useNoLogging
+   *
+   * 以上方法均被 synchronized 修饰， 实现按序加载，锁对象均为 `LogFactory.class`
+   *
+   */
   static {
     tryImplementation(LogFactory::useSlf4jLogging);
     tryImplementation(LogFactory::useCommonsLogging);
@@ -99,6 +114,7 @@ public final class LogFactory {
 
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
+      // 获取指定适配器的构造器
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
       Log log = candidate.newInstance(LogFactory.class.getName());
       if (log.isDebugEnabled()) {
