@@ -22,6 +22,7 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 提供了 Cache 的基本实现
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {

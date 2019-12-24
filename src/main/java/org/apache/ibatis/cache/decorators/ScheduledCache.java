@@ -26,6 +26,7 @@ public class ScheduledCache implements Cache {
 
   private final Cache delegate;
   protected long clearInterval;
+  // 最后一次清理的时间戳
   protected long lastClear;
 
   public ScheduledCache(Cache delegate) {

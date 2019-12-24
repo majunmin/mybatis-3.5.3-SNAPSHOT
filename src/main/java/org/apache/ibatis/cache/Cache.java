@@ -1,4 +1,4 @@
-/**
+  /**
  *    Copyright 2009-2019 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,6 +87,7 @@ public interface Cache {
   int getSize();
 
   /**
+   * 获取读写锁
    * Optional. As of 3.2.6 this method is no longer called by the core.
    * <p>
    * Any locking needed by the cache must be provided internally by the cache provider.

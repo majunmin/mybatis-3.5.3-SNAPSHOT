@@ -28,7 +28,11 @@ import org.apache.ibatis.cache.Cache;
 public class LruCache implements Cache {
 
   private final Cache delegate;
+
+  // LinkedHashMap<Object, Object>类型对象， 有序的HashMap, 用于记录key最近使用的情况
   private Map<Object, Object> keyMap;
+
+  // 最近最少被使用的 key(可能会被清除)
   private Object eldestKey;
 
   public LruCache(Cache delegate) {
@@ -46,16 +50,21 @@ public class LruCache implements Cache {
     return delegate.getSize();
   }
 
+  /**
+   * 重设缓存大小时 会重置 keyMap
+   * @param size
+   */
   public void setSize(final int size) {
     /**
      * 初始化 keyMap, 其类型为 LinkedHashMap，
-     * 覆盖实现其 removeEldestEntry():
-     *   LinkedHashMap 在插入新的键值对时会调用该方法，以决定是否在插入新的键值对后，移除老的键值对。
-     *
+     * 覆盖其实现 removeEldestEntry():
+     *   LinkedHashMap#put() 调用时会调用该方法，以决定是否在插入新的键值对后，移除老的键值对。
+     * accessOrder: true:表示 LinkedHashMap 记录的顺序是 access-order
+     *                   (LinkedHashMap#get()会改变其记录顺序)
      */
     keyMap = new LinkedHashMap<Object, Object>(size, .75F, true) {
       private static final long serialVersionUID = 4267176411845948333L;
-
+      // 当调用 LinkedhashMap#put() 时 会调用该方法
       @Override
       protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
         /**
@@ -75,6 +84,7 @@ public class LruCache implements Cache {
   @Override
   public void putObject(Object key, Object value) {
     delegate.putObject(key, value);
+    // 检查并清除最近最少被使用的 key
     cycleKeyList(key);
   }
 

@@ -30,6 +30,8 @@ import org.apache.ibatis.cache.CacheException;
  * It sets a lock over a cache key when the element is not found in cache.
  * This way, other threads will wait until this element is filled instead of hitting the database.
  *
+ * BlockingCache是阻塞版本的缓存装饰器，它会保证只有一个线程到数据库中查找指定 key 对应的数据。
+ *
  * @author Eduardo Macarron
  *
  */
@@ -37,6 +39,9 @@ public class BlockingCache implements Cache {
 
   private long timeout;
   private final Cache delegate;
+  /**
+   * 每个 缓存 key 都对应着一个 ReentrantLock，
+   */
   private final ConcurrentHashMap<Object, ReentrantLock> locks;
 
   public BlockingCache(Cache delegate) {
@@ -63,8 +68,14 @@ public class BlockingCache implements Cache {
     }
   }
 
+  /**
+   * 加锁防止 多次访问数据库
+   * @param key The key
+   * @return
+   */
   @Override
   public Object getObject(Object key) {
+    // 获取锁
     acquireLock(key);
     Object value = delegate.getObject(key);
     // 若缓存命中，则释放锁。需要注意的是，未命中则不释放锁
@@ -93,6 +104,7 @@ public class BlockingCache implements Cache {
   }
 
   private void acquireLock(Object key) {
+    // 获取该key对应的 ReentrantLock
     Lock lock = getLockForKey(key);
     if (timeout > 0) {
       try {
@@ -104,6 +116,7 @@ public class BlockingCache implements Cache {
         throw new CacheException("Got interrupted while trying to acquire lock for key " + key, e);
       }
     } else {
+      // 获取不带超时时间的锁
       lock.lock();
     }
   }

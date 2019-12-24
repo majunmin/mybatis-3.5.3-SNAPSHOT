@@ -29,6 +29,7 @@ public class FifoCache implements Cache {
 
   private final Cache delegate;
   private final Deque<Object> keyList;
+  // 设置缓存上线 超过该值则需要释放缓存
   private int size;
 
   public FifoCache(Cache delegate) {
@@ -53,7 +54,9 @@ public class FifoCache implements Cache {
 
   @Override
   public void putObject(Object key, Object value) {
+    // 检测并清理 delegate 缓存, 添加缓存到 list
     cycleKeyList(key);
+    // 添加缓存
     delegate.putObject(key, value);
   }
 

@@ -23,6 +23,9 @@ import java.util.StringJoiner;
 import org.apache.ibatis.reflection.ArrayUtil;
 
 /**
+ * 在 Cache 中唯一确定一个缓存项需要使用的缓存项 key,由于Mybatis中涉及大量的 动态sql等因素，
+ * 因此其缓存项key 不能仅仅通过一个 String表示，所以 Mybatis 提供了一个 CacheKey类来表示其缓存项key,
+ * 在一个 CacheKey中可以封装多个影响缓存项的因素
  * @author Clinton Begin
  */
 public class CacheKey implements Cloneable, Serializable {
