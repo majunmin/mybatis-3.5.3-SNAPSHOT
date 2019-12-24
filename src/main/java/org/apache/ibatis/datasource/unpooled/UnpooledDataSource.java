@@ -38,8 +38,11 @@ import org.apache.ibatis.io.Resources;
  */
 public class UnpooledDataSource implements DataSource {
 
+  // 加载 Driver 的类加载器
   private ClassLoader driverClassLoader;
+  // 数据库驱动相关配置
   private Properties driverProperties;
+  // 缓存所有已注册的 Drive
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
   private String driver;
@@ -221,7 +224,7 @@ public class UnpooledDataSource implements DataSource {
     initializeDriver();
     // 获取连接
     Connection connection = DriverManager.getConnection(url, properties);
-    // 配置连接 包括自动提交 和 事务等级
+    // 配置连接 包括autoCommit 和 事务等级
     configureConnection(connection);
     return connection;
   }
@@ -231,7 +234,7 @@ public class UnpooledDataSource implements DataSource {
       Class<?> driverType;
       try {
         if (driverClassLoader != null) {
-          driverType = Class.forName(driver, true, driverClassLoader);
+          driverType = Class.forName(driver, true, driverClassLoader); // 注册驱动
         } else {
           driverType = Resources.classForName(driver);
         }

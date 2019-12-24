@@ -40,8 +40,13 @@ public class PooledDataSource implements DataSource {
 
   private static final Log log = LogFactory.getLog(PooledDataSource.class);
 
+  /**
+   * PoolState 是用于管理 PooledConnection 状态的对象, 并记录统计信息
+   * 通过 两个 ArrayList() 来分别管理 空闲 与 活跃 的连接
+   */
   private final PoolState state = new PoolState(this);
 
+  // 用于生成真是的数据库连接对象，构造函数中会初始化字段
   private final UnpooledDataSource dataSource;
 
   // OPTIONAL CONFIGURATION FIELDS
@@ -50,10 +55,14 @@ public class PooledDataSource implements DataSource {
   protected int poolMaximumCheckoutTime = 20000;
   protected int poolTimeToWait = 20000;
   protected int poolMaximumLocalBadConnectionTolerance = 3;
+  // 测试数据库是否可用时， 发送的测试语句
   protected String poolPingQuery = "NO PING QUERY SET";
   protected boolean poolPingEnabled;
+
+  // 当连接超过 poolPingConnect工onsNotUsedFor 毫秒未使用时，会发送一次测试 SQL 语句，检测连接是否正常
   protected int poolPingConnectionsNotUsedFor;
 
+  // 根据数据库的 hash(URL+ userName + password), 该哈希值用于标志着当前的连接池，在构造函数中 初始化
   private int expectedConnectionTypeCode;
 
   public PooledDataSource() {
@@ -151,7 +160,7 @@ public class PooledDataSource implements DataSource {
 
   /**
    * Sets the default network timeout value to wait for the database operation to complete. See {@link Connection#setNetworkTimeout(java.util.concurrent.Executor, int)}
-   * 
+   *
    * @param milliseconds
    *          The time in milliseconds to wait for the database operation to complete.
    * @since 3.5.2
@@ -316,6 +325,7 @@ public class PooledDataSource implements DataSource {
 
   /**
    * Closes all active and idle connections in the pool.
+   * 关闭 activeConnections 和 idleConnections
    */
   public void forceCloseAll() {
     synchronized (state) {
@@ -362,11 +372,18 @@ public class PooledDataSource implements DataSource {
     return ("" + url + username + password).hashCode();
   }
 
+  /**
+   * 核心方法
+   * @param conn
+   * @throws SQLException
+   */
   protected void pushConnection(PooledConnection conn) throws SQLException {
 
     synchronized (state) {
       state.activeConnections.remove(conn);
+      // 检测连接是否有效
       if (conn.isValid()) {
+        // 空闲连接数是否达到 poolMaximumIdleConnections， 以及conn 是否属于该线程池
         if (state.idleConnections.size() < poolMaximumIdleConnections && conn.getConnectionTypeCode() == expectedConnectionTypeCode) {
           state.accumulatedCheckoutTime += conn.getCheckoutTime();
           if (!conn.getRealConnection().getAutoCommit()) {
@@ -401,6 +418,13 @@ public class PooledDataSource implements DataSource {
     }
   }
 
+  /**
+   * 核心方法
+   * @param username
+   * @param password
+   * @return
+   * @throws SQLException
+   */
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
     PooledConnection conn = null;

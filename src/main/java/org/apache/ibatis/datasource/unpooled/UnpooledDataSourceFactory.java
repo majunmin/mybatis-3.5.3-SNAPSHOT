@@ -41,15 +41,15 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
-    // 获取 dataSource 元信息对象
+    // 获取 dataSource 元信息对象 MetaObject
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
-    // 配置properties 键值列表， properties 由配置文件解析器传入
+    // 配置properties 键值列表, properties 由配置文件解析器传入
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
       // 检查 properties 是否以 driver. 开头
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
+        // 以 "driver." 开头的自己置项是对 DataSource 的配置，记录到 driverProperties 中保存
         String value = properties.getProperty(propertyName);
-        // 存储配置信息到 driverProperties 中
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
         String value = (String) properties.get(propertyName);
