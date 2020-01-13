@@ -62,12 +62,20 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     // do nothing
   }
 
+  /**
+   * 在 SQL语句执行之后 执行
+   * @param executor
+   * @param ms
+   * @param stmt
+   * @param parameter
+   */
   @Override
   public void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
     processBatch(ms, stmt, parameter);
   }
 
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
+    // 获得 <selectKey> 节点 keyProperties 属性指定的属性名称，它表示主键对应的属性名称
     final String[] keyProperties = ms.getKeyProperties();
     if (keyProperties == null || keyProperties.length == 0) {
       return;
@@ -210,6 +218,11 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     return paramMap.keySet().iterator().next();
   }
 
+  /**
+   * 将用户传入的参数 转化为 Collection
+   * @param param
+   * @return
+   */
   private static Collection<?> collectionize(Object param) {
     if (param instanceof Collection) {
       return (Collection<?>) param;
@@ -265,6 +278,7 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
         if (typeHandler == null) {
           // Error?
         } else {
+          // 将生成的主键 设置到 用户传入实参位置
           Object value = typeHandler.getResult(rs, columnPosition);
           metaParam.setValue(propertyName, value);
         }
