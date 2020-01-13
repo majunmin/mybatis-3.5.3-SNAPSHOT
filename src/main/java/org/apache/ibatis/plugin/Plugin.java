@@ -34,7 +34,8 @@ public class Plugin implements InvocationHandler {
   private final Object target;
   // 拦截器类
   private final Interceptor interceptor;
-  // 拦截器需要拦截的方法摘要，这里Class键为Executor等上述的四个
+  // 拦截器需要拦截的方法摘要 Singnature ，这里Class键为Executor等上述的四个
+  // key 为可以被拦截的接口类  value: 可以被拦截的方法
   // 值为需要被拦截的方法
   private final Map<Class<?>, Set<Method>> signatureMap;
 
@@ -46,6 +47,8 @@ public class Plugin implements InvocationHandler {
 
   /**
    * 通过此方法创建代理类
+   * 在 Plugin#invoke() 中，会将当前调用的方法与 signatureMap 集合中记录的方法信息进行比较，
+   * 如果当前调用的方法是需要被拦截的方法，则调用其 intercept() 进行处理，如果不能被拦截则直接调用 target的相应方法。
    * @param target
    * @param interceptor
    * @return
@@ -53,7 +56,7 @@ public class Plugin implements InvocationHandler {
   public static Object wrap(Object target, Interceptor interceptor) {
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
     Class<?> type = target.getClass();
-    // 获取需要被代理类的 所有待拦截的方法
+    // 获取需要被代理类的所有 待拦截的方法, 这是可以使用 jdk动态代理 的基础
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
     if (interfaces.length > 0) {
       return Proxy.newProxyInstance(
@@ -80,9 +83,10 @@ public class Plugin implements InvocationHandler {
   }
 
   /**
-   * 需要被拦截的注解摘要
+   * 需要被拦截的注解摘要 @Signature
+   *
    * 先获取拦截器上注解， @Interceptor, 遍历其值 @Signature
-   * example: @Intercepts(value={@Signature(args={Void.class},method="query",type=Void.class)})
+   * example: @Intercepts(value={@Signature(args={Void.class},method="query",type=Executor.class)})
    * @param interceptor
    * @return
    */
